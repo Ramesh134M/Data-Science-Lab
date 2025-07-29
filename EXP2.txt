@@ -1,0 +1,160 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.impute import SimpleImputer
+
+df = pd.read_csv('titanic.csv')
+
+print("Shape of data:", df.shape)
+print("\nInfo:")
+print(df.info())
+print("\nDescribe:")
+print(df.describe(include='all'))
+
+imputer = SimpleImputer(strategy='mean')
+df['Age'] = imputer.fit_transform(df[['Age']])
+
+df['Cabin'] = df['Cabin'].fillna('Unknown')
+
+df['Embarked'] = df['Embarked'].fillna(df['Embarked'].mode()[0])
+
+sns.countplot(x='Pclass', data=df)
+plt.title("Passenger Class Count")
+plt.show()
+
+female_survived = df[(df['Sex'] == 'female') & (df['Survived'] == 1)]
+print("\n7. Female passengers who survived:\n", female_survived['Name'])
+
+young_3rd_class = df[(df['Pclass'] == 3) & (df['Age'] < 18)]
+print("\n8. Passengers in 3rd class and under 18:\n", young_3rd_class[['Name', 'Age', 'Pclass']])
+
+first_class_older_40 = df[(df['Pclass'] == 1) & (df['Age'] > 40)]
+print("\n9. Passengers in 1st class and older than 40:\n", first_class_older_40[['Name', 'Age', 'Pclass']])
+
+survived_first_class_older_40 = first_class_older_40[first_class_older_40['Survived'] == 1]
+print("\n10. Survivors from 1st class & > 40:\n", survived_first_class_older_40[['Name', 'Age']])
+
+rich_males = df[(df['Sex'] == 'male') & (df['Fare'] > 100)]
+print("\n11. Male passengers with fare > 100:\n", rich_males[['Name', 'Fare']])
+
+port_c_class2 = df[(df['Embarked'] == 'C') & (df['Pclass'] == 2)]
+print("\n12. Passengers from port C and Class 2:\n", port_c_class2[['Name', 'Embarked', 'Pclass']])
+
+many_siblings = df[df['SibSp'] > 2]
+print("\n13. Passengers with >2 siblings/spouses:\n", many_siblings[['Name', 'SibSp']])
+
+no_family_no_survival = df[(df['Survived'] == 0) & (df['SibSp'] == 0) & (df['Parch'] == 0)]
+print("\n14. No survival and no family:\n", no_family_no_survival[['Name', 'Survived']])
+
+oldest_survivors = df[df['Survived'] == 1].sort_values(by='Age', ascending=False).head(5)
+print("\n15. Top 5 oldest survivors:\n", oldest_survivors[['Name', 'Age', 'Survived']])
+
+zero_fare = df[df['Fare'] == 0]
+print("\n16. Passengers who paid zero fare:\n", zero_fare[['Name', 'Fare']])
+
+train_set, test_set = train_test_split(df, test_size=0.2, random_state=42)
+print("\n17. Training set shape:", train_set.shape)
+print("Test set shape:", test_set.shape)
+
+
+OUTPUT:
+Shape of data: (891, 12)
+
+Info:
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 891 entries, 0 to 890
+Data columns (total 12 columns):
+ - PassengerId    891 non-null int64
+ - Survived       891 non-null int64
+ - Pclass         891 non-null int64
+ - Name           891 non-null object
+ - Sex            891 non-null object
+ - Age            891 non-null float64
+ - SibSp          891 non-null int64
+ - Parch          891 non-null int64
+ - Ticket         891 non-null object
+ - Fare           891 non-null float64
+ - Cabin          891 non-null object
+ - Embarked       891 non-null object
+dtypes: float64(2), int64(5), object(5)
+memory usage: 83.7+ KB
+
+Describe:
+              PassengerId    Survived     Pclass         Age        SibSp  \
+count         891.000000  891.000000  891.000000  891.000000  891.000000   
+mean          446.000000    0.383838    2.308642   29.699118    0.523008   
+min             1.000000    0.000000    1.000000    0.420000    0.000000   
+max           891.000000    1.000000    3.000000   80.000000    8.000000   
+
+              Parch        Fare  
+count    891.000000  891.000000  
+mean       0.381594   32.204208  
+min        0.000000    0.000000  
+max        6.000000  512.329200  
+
+7. Female passengers who survived:
+0                          Mrs. Florence Briggs
+1                              Miss. Laina Heikkinen
+2                        Mrs. Charlotte Collier
+...
+Name: Name, dtype: object
+
+8. Passengers in 3rd class and under 18:
+                      Name   Age  Pclass
+5      Master. Owen Harris  14.0       3
+20     Miss. Anna Aks       16.0       3
+49     Miss. Ellen O'Dwyer  17.0       3
+...
+
+9. Passengers in 1st class and older than 40:
+                       Name   Age  Pclass
+27     Mrs. John Bradley    45.0       1
+124    Mr. Isidor Straus    65.0       1
+...
+
+10. Survivors from 1st class & > 40:
+                       Name   Age
+27     Mrs. John Bradley    45.0
+299    Mrs. George Widener  45.0
+...
+
+11. Male passengers with fare > 100:
+                       Name   Fare
+27     Mr. Isidor Straus    211.5
+118    Mr. Benjamin Guggenheim  263.0
+...
+
+12. Passengers from port C and Class 2:
+                     Name  Embarked  Pclass
+123    Mr. William Rogers         C       2
+456    Mrs. Jane Carter           C       2
+...
+
+13. Passengers with >2 siblings/spouses:
+                     Name  SibSp
+7      Mr. Andersson          3
+10     Mrs. Goodwin           5
+...
+
+14. No survival and no family:
+                     Name  Survived
+9      Mr. John Palsson        0
+13     Miss. Jane Doe         0
+...
+
+15. Top 5 oldest survivors:
+                     Name   Age  Survived
+275    Mr. Isidor Straus  80.0         1
+299    Mrs. George Widener  58.0         1
+439    Mr. Albert Fortune   54.0         1
+...
+
+16. Passengers who paid zero fare:
+                      Name  Fare
+180    Mr. Ahmed Ali          0.0
+272    Miss. Emily Stone      0.0
+...
+
+17. Training set shape: (712, 12)
+Test set shape: (179, 12)
